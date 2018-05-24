@@ -8,6 +8,7 @@ use std::vec::Vec;
 use std::path::PathBuf;
 
 mod builtin;
+mod readline;
 
 pub struct Config {
     pub filetype: String,
