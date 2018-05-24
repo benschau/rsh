@@ -1,11 +1,12 @@
 # RSH
-## **R**ush **SH**ell
+### **R**ush **SH**ell
 
+## Purpose
 A project I'm using to solidify my knowledge of Rust. 
 
 Hopefully, this will be more intense than a homework project.
 
-Features:
+## Features:
 * Colored, customizable output.
 * tab-completion
 * Versatile prompts, improved on the ZSH style.
@@ -20,8 +21,10 @@ Features:
     * Command line calculator
     * Mass file/directory renames based on regex.
 
-### Installation:
+## Installation:
+Simply run `cargo run` for now.
 
-### Dependencies:
-* Rust & Cargo
+## Dependencies:
+* Rust >= 1.23.0
+* Cargo >= 0.24.0 
 
