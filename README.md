@@ -1,5 +1,5 @@
-# RSH
-### **R**ush **SH**ell
+# RSH (**R**ush **SH**ell)
+--------------------------
 
 ## Purpose
 A project I'm using to solidify my knowledge of Rust. 
@@ -22,7 +22,7 @@ Hopefully, this will be more intense than a homework project.
     * Mass file/directory renames based on regex.
 
 ## Installation:
-Simply run `cargo run` for now.
+Simply `cargo run` for now.
 
 ## Dependencies:
 * Rust >= 1.23.0
