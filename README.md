@@ -1,5 +1,5 @@
-# RSH
-### **R**ush **SH**ell
+# RSH (**R**ush **SH**ell)
+--------------------------
 
 ## Purpose
 A project I'm using to solidify my knowledge of Rust. 
