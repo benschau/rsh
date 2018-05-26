@@ -53,14 +53,34 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         let mut input = String::new();
         stdin.read_line(&mut input)?;
         
-        let tokens: Vec<String> = input.split(" ").map(|s| s.to_string()).collect();
+        let tokens: Vec<&str> = input.split_whitespace().collect();
+        let procs: Vec<Vec<&str>> = parse(tokens)?;
 
-        for token in tokens.iter() {
-            print!("{} ", token); 
+        if procs.len() > 0 {
+            /* match tokens[0].as_ref() {
+                "exit" => builtin::exit(0), 
+                _ => continue,
+            } */
+
         }
     } 
 
     Ok(())
+}
+
+/*
+ * parse
+ *  @arg tokens vector formed from splitting the input string
+ *  @ret vec<vec<&str>> formed from the tokens vector, where each entry represents a process.
+ *                      also, sets out/in/err redirection per global variables (maybe, don't know
+ *                      yet.)
+ */
+fn parse(tokens: Vec<&str>) -> Result<(Vec<Vec<&str>>), Box<Error>> {
+    let procs: Vec<Vec<&str>> = Vec::new();
+
+
+
+    Ok((procs))
 }
 
 #[cfg(test)]

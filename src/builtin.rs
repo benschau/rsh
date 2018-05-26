@@ -7,6 +7,17 @@ use std::error::Error;
 use std::env;
 use std::path::PathBuf;
 
+static HELP: &'static str = "
+    exit - exits the shell.     
+";
+
+/**
+ * Prints the help message.
+ */
+pub fn help() {
+    println!("{}", HELP);
+}
+
 /**
  * exit - logout of the session
  */
@@ -38,8 +49,9 @@ pub fn unset() -> Result<(), Box<Error>> {
 /**
  * hash - create a hash
  */
-pub fn hash() -> Result<(), Box<Error>> {
-    Ok(())
+pub fn hash(string: &str) -> Result<(u32), Box<Error>> {
+
+    Ok((0))
 }
 
 /**
