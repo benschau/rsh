@@ -1,10 +1,9 @@
 use std::error::Error;
-// use std::fs::File;
+use std::fs::File;
 use std::io;
 use std::io::Write; 
 use std::vec::Vec;
-// use std::io::prelude::*;
-// use std::process::Command;
+use std::process::Command;
 use std::path::PathBuf;
 
 mod builtin;
@@ -59,9 +58,8 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         if procs.len() > 0 {
             /* match tokens[0].as_ref() {
                 "exit" => builtin::exit(0), 
-                _ => continue,
+                _ => Command::new(),
             } */
-
         }
     } 
 
@@ -77,8 +75,11 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
  */
 fn parse(tokens: Vec<&str>) -> Result<(Vec<Vec<&str>>), Box<Error>> {
     let procs: Vec<Vec<&str>> = Vec::new();
-
-
+    let process: Vec<&str>;
+    
+    for token in tokens {
+         
+    }
 
     Ok((procs))
 }
