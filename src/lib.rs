@@ -55,11 +55,18 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         let tokens: Vec<&str> = input.split_whitespace().collect();
         let procs: Vec<Vec<&str>> = parse(tokens)?;
 
-        if procs.len() > 0 {
-            /* match tokens[0].as_ref() {
-                "exit" => builtin::exit(0), 
-                _ => Command::new(),
-            } */
+        println!("{:?}", procs);
+        
+        for process in procs {
+            let cmd = process[0];
+
+            if cmd == "exit" {
+                builtin::exit(1); 
+            } else {
+                Command::new(cmd)
+                    .spawn()
+                    .expect("failed to execute process.");
+            }
         }
     } 
 
@@ -74,12 +81,21 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
  *                      yet.)
  */
 fn parse(tokens: Vec<&str>) -> Result<(Vec<Vec<&str>>), Box<Error>> {
-    let procs: Vec<Vec<&str>> = Vec::new();
-    let process: Vec<&str>;
+    let mut procs: Vec<Vec<&str>> = Vec::new();
+    let mut process: Vec<&str> = Vec::new();
     
     for token in tokens {
-         
+        /* TODO: Manage redirection.
+        if token == "<" {
+                    
+        } else if token == ">" {
+        
+        } */
+
+        process.push(token);
     }
+
+    procs.push(process);
 
     Ok((procs))
 }
