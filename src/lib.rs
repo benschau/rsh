@@ -61,7 +61,18 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         // let mut input = String::new();
         // stdin.read_line(&mut input)?;
         
-        let mut input = r1.readline(&prompt)?;
+        let input;
+        let readline = r1.readline(&prompt);
+        match readline {
+            Ok(line) => {
+                r1.add_history_entry(&line);
+                input = line;
+            }, 
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break
+            }
+        }
         io::stdout().flush().unwrap();
         
         let tokens: Vec<&str> = input.split_whitespace().collect();
