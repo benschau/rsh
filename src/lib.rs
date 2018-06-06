@@ -1,3 +1,6 @@
+
+extern crate rustyline;
+
 use std::error::Error;
 use std::fs::File;
 use std::io;
@@ -5,9 +8,10 @@ use std::io::Write;
 use std::vec::Vec;
 use std::process::Command;
 use std::path::PathBuf;
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
 
 mod builtin;
-mod readline;
 
 pub struct Config {
     pub filetype: String,
