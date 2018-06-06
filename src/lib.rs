@@ -39,25 +39,33 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<Error>> {
-    let mut prompt: String = String::from(">>");
+    let stdin = io::stdin();
+    
+    let prompt: String = String::from(">> ");
     let mut pwd: PathBuf;
     let mut running: bool = true;
-    let stdin = io::stdin();
+    let mut r1 = Editor::<()>::new();
+
+    if let Err(_) = r1.load_history(".rsh_history") {
+        println!("No previous history!"); 
+    }
     
     // read config files
 
     // cmd loop
     while running {
-        let pwd = builtin::pwd()?;
+        pwd = builtin::pwd()?;
         
-        print!("{} | {} ", pwd.display(), prompt);  
+        // print!("{} | {} ", pwd.display(), prompt);  
+        
+        // let mut input = String::new();
+        // stdin.read_line(&mut input)?;
+        
+        let mut input = r1.readline(&prompt)?;
         io::stdout().flush().unwrap();
         
-        let mut input = String::new();
-        stdin.read_line(&mut input)?;
-        
         let tokens: Vec<&str> = input.split_whitespace().collect();
-        let procs: Vec<Vec<&str>> = parse(tokens)?;
+        let procs: Vec<Vec<&str>> = parse(tokens);
 
         println!("{:?}", procs);
         
@@ -74,6 +82,8 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         }
     } 
 
+    r1.save_history(".rsh_history").unwrap();
+
     Ok(())
 }
 
@@ -84,9 +94,13 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
  *                      also, sets out/in/err redirection per global variables (maybe, don't know
  *                      yet.)
  */
-fn parse(tokens: Vec<&str>) -> Result<(Vec<Vec<&str>>), Box<Error>> {
+fn parse(tokens: Vec<&str>) -> Vec<Vec<&str>> {
     let mut procs: Vec<Vec<&str>> = Vec::new();
     let mut process: Vec<&str> = Vec::new();
+
+    if (tokens.is_empty()) {
+        return procs; 
+    }
     
     for token in tokens {
         /* TODO: Manage redirection.
@@ -101,7 +115,7 @@ fn parse(tokens: Vec<&str>) -> Result<(Vec<Vec<&str>>), Box<Error>> {
 
     procs.push(process);
 
-    Ok((procs))
+    return procs;
 }
 
 #[cfg(test)]
