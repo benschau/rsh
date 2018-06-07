@@ -65,7 +65,9 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         let readline = r1.readline(&prompt);
         match readline {
             Ok(line) => {
-                r1.add_history_entry(&line);
+                if line.len() != 0 {
+                    r1.add_history_entry(&line);
+                }
                 input = line;
             }, 
             Err(err) => {
@@ -82,13 +84,24 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         
         for process in procs {
             let cmd = process[0];
+            let len = process.len();
 
             if cmd == "exit" {
                 builtin::exit(1); 
             } else {
-                Command::new(cmd)
-                    .spawn()
-                    .expect("failed to execute process.");
+                let childproc = Command::new(cmd)
+                                        .args(&process[1..len])
+                                        .output();
+                    
+                match childproc { 
+                    Ok(child) => {
+                        println!("{}", String::from_utf8_lossy(&child.stdout));
+                        println!("{}", String::from_utf8_lossy(&child.stderr));
+                    },
+                    Err(e) => {
+                        println!("rsh: command not found: {}", cmd);
+                    }
+                };
             }
         }
     } 
