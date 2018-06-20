@@ -1,15 +1,20 @@
 
 extern crate rustyline;
+extern crate libc;
+extern crate nix;
 
 use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::Write; 
 use std::vec::Vec;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::path::PathBuf;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use libc::c_int;
+use nix::unistd::pipe;
 
 mod builtin;
 
@@ -79,6 +84,7 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         
         let tokens: Vec<&str> = input.split_whitespace().collect();
         let procs: Vec<Vec<&str>> = parse(tokens);
+        // let procs: Vec<Process> = parse(tokens);
 
         println!("{:?}", procs);
         
@@ -111,6 +117,26 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
     Ok(())
 }
 
+struct Process {
+    stdin_fd: c_int,
+    stdout_fd: c_int,
+    stderr_fd: c_int,
+    cmd: Option<String>,
+    args: Option<Vec<String>>,
+}
+
+impl Default for Process {
+    fn default() -> Self {
+        Process {
+            stdin_fd: 0,
+            stdout_fd: 1,
+            stderr_fd: 2,
+            cmd: None,
+            args: None,
+        }
+    }
+}
+
 /*
  * parse
  *  @arg tokens vector formed from splitting the input string
@@ -119,22 +145,33 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
  *                      yet.)
  */
 fn parse(tokens: Vec<&str>) -> Vec<Vec<&str>> {
-    let mut procs: Vec<Vec<&str>> = Vec::new();
-    let mut process: Vec<&str> = Vec::new();
+    // let mut procs: Vec<Vec<&str>> = Vec::new();
+    // let mut process: Vec<&str> = Vec::new();
+    let mut procs: Vec<Process> = Vec::new();
+    let mut process: Process = Default::default();
 
     if (tokens.is_empty()) {
         return procs; 
     }
-    
-    for token in tokens {
-        /* TODO: Manage redirection.
-        if token == "<" {
-                    
-        } else if token == ">" {
-        
-        } */
 
-        process.push(token);
+    process.cmd = Some(tokens[0].to_string());
+    
+    // for token in tokens {
+    //     // TODO: Manage redirection.
+    //     match token {
+    //         ">" => println!("truncate/redirect to file"),
+    //         "<" => println!("take input from file"),
+    //         ">>" => println!("append/redirect to file"),
+    //         "|" => println!("stdout of this proc to stdin of the next proc"),
+    //         _  => process.push(token)
+    //     }
+    // }
+    
+    let mut cmd_ptr = 1; // point to the token right after the command.
+    let mut arg_ptr = 1; // point to the token before the next command (or next carriage character)
+    for token in tokens {
+
+
     }
 
     procs.push(process);
