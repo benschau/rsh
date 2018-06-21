@@ -27,4 +27,4 @@ Simply `cargo run` for now.
 ## Dependencies:
 * Rust >= 1.23.0
 * Cargo >= 0.24.0 
-
+* Nix >= 0.11.0
