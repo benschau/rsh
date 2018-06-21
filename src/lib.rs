@@ -11,6 +11,7 @@ use std::vec::Vec;
 use std::process::{Command, Stdio};
 use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::path::PathBuf;
+use std::fmt;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use libc::c_int;
@@ -83,11 +84,12 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         io::stdout().flush().unwrap();
         
         let tokens: Vec<&str> = input.split_whitespace().collect();
-        let procs: Vec<Vec<&str>> = parse(tokens);
-        // let procs: Vec<Process> = parse(tokens);
+        // let procs: Vec<Vec<&str>> = parse(tokens);
+        let procs: Vec<Process> = parse(tokens);
 
         println!("{:?}", procs);
         
+        /*
         for process in procs {
             let cmd = process[0];
             let len = process.len();
@@ -109,7 +111,7 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
                     }
                 };
             }
-        }
+        } */
     } 
 
     r1.save_history(".rsh_history").unwrap();
@@ -125,6 +127,15 @@ struct Process {
     args: Option<Vec<String>>,
 }
 
+impl fmt::Debug for Process {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("Process")
+           .field("cmd", &self.cmd)
+           .field("args", &self.args)
+           .finish()
+    }
+}
+
 impl Default for Process {
     fn default() -> Self {
         Process {
@@ -137,6 +148,8 @@ impl Default for Process {
     }
 }
 
+const REDIRECTION: [&str; 4] = [">", "<", ">>", "|"]; 
+
 /*
  * parse
  *  @arg tokens vector formed from splitting the input string
@@ -144,36 +157,45 @@ impl Default for Process {
  *                      also, sets out/in/err redirection per global variables (maybe, don't know
  *                      yet.)
  */
-fn parse(tokens: Vec<&str>) -> Vec<Vec<&str>> {
+fn parse(tokens: Vec<&str>) -> Vec<Process> {
     // let mut procs: Vec<Vec<&str>> = Vec::new();
     // let mut process: Vec<&str> = Vec::new();
     let mut procs: Vec<Process> = Vec::new();
     let mut process: Process = Default::default();
 
-    if (tokens.is_empty()) {
+    if tokens.is_empty() {
         return procs; 
     }
 
-    process.cmd = Some(tokens[0].to_string());
-    
-    // for token in tokens {
-    //     // TODO: Manage redirection.
-    //     match token {
-    //         ">" => println!("truncate/redirect to file"),
-    //         "<" => println!("take input from file"),
-    //         ">>" => println!("append/redirect to file"),
-    //         "|" => println!("stdout of this proc to stdin of the next proc"),
-    //         _  => process.push(token)
-    //     }
-    // }
-    
+    //process.cmd = Some(tokens[0].to_string());
     let mut cmd_ptr = 1; // point to the token right after the command.
     let mut arg_ptr = 1; // point to the token before the next command (or next carriage character)
-    for token in tokens {
 
+    let mut args: Vec<String> = Vec::new();
 
+    for (i, token) in tokens.iter().enumerate() {
+        if cmd_ptr == arg_ptr {
+            process.cmd = Some(token.to_string()); 
+        } else if !(REDIRECTION.contains(&token)) {
+            args.push(token.to_string());
+        }
+
+        if REDIRECTION.contains(&token) {
+            process.args = Some(args); 
+            procs.push(process);
+
+            args = Vec::new();
+            process = Default::default();
+            
+            cmd_ptr = arg_ptr + 1;
+            arg_ptr = cmd_ptr;
+            continue;
+        }
+        
+        arg_ptr += 1;
     }
-
+    
+    process.args = Some(args);
     procs.push(process);
 
     return procs;
