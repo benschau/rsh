@@ -89,16 +89,15 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
 
         println!("{:?}", procs);
         
-        /*
         for process in procs {
-            let cmd = process[0];
-            let len = process.len();
+            let cmd = process.cmd.unwrap();
+            let args = process.args.unwrap();
 
             if cmd == "exit" {
                 builtin::exit(1); 
             } else {
-                let childproc = Command::new(cmd)
-                                        .args(&process[1..len])
+                let childproc = Command::new(&cmd)
+                                        .args(args)
                                         .output();
                     
                 match childproc { 
@@ -111,7 +110,7 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
                     }
                 };
             }
-        } */
+        } 
     } 
 
     r1.save_history(".rsh_history").unwrap();
@@ -181,6 +180,8 @@ fn parse(tokens: Vec<&str>) -> Vec<Process> {
         }
 
         if REDIRECTION.contains(&token) {
+            // TODO: Set process stdout, stdin, stderr respectively.
+
             process.args = Some(args); 
             procs.push(process);
 
