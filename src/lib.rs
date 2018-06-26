@@ -84,7 +84,6 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         io::stdout().flush().unwrap();
         
         let tokens: Vec<&str> = input.split_whitespace().collect();
-        // let procs: Vec<Vec<&str>> = parse(tokens);
         let procs: Vec<Process> = parse(tokens);
 
         println!("{:?}", procs);
@@ -157,8 +156,6 @@ const REDIRECTION: [&str; 4] = [">", "<", ">>", "|"];
  *                      yet.)
  */
 fn parse(tokens: Vec<&str>) -> Vec<Process> {
-    // let mut procs: Vec<Vec<&str>> = Vec::new();
-    // let mut process: Vec<&str> = Vec::new();
     let mut procs: Vec<Process> = Vec::new();
     let mut process: Process = Default::default();
 
@@ -166,7 +163,6 @@ fn parse(tokens: Vec<&str>) -> Vec<Process> {
         return procs; 
     }
 
-    //process.cmd = Some(tokens[0].to_string());
     let mut cmd_ptr = 1; // point to the token right after the command.
     let mut arg_ptr = 1; // point to the token before the next command (or next carriage character)
 
