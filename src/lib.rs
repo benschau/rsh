@@ -1,15 +1,21 @@
 
 extern crate rustyline;
+extern crate libc;
+extern crate nix;
 
 use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::io::Write; 
 use std::vec::Vec;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::path::PathBuf;
+use std::fmt;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use libc::c_int;
+use nix::unistd::pipe;
 
 mod builtin;
 
@@ -78,19 +84,19 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
         io::stdout().flush().unwrap();
         
         let tokens: Vec<&str> = input.split_whitespace().collect();
-        let procs: Vec<Vec<&str>> = parse(tokens);
+        let procs: Vec<Process> = parse(tokens);
 
         println!("{:?}", procs);
         
         for process in procs {
-            let cmd = process[0];
-            let len = process.len();
+            let cmd = process.cmd.unwrap();
+            let args = process.args.unwrap();
 
             if cmd == "exit" {
                 builtin::exit(1); 
             } else {
-                let childproc = Command::new(cmd)
-                                        .args(&process[1..len])
+                let childproc = Command::new(&cmd)
+                                        .args(args)
                                         .output();
                     
                 match childproc { 
@@ -103,13 +109,44 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
                     }
                 };
             }
-        }
+        } 
     } 
 
     r1.save_history(".rsh_history").unwrap();
 
     Ok(())
 }
+
+struct Process {
+    stdin_fd: c_int,
+    stdout_fd: c_int,
+    stderr_fd: c_int,
+    cmd: Option<String>,
+    args: Option<Vec<String>>,
+}
+
+impl fmt::Debug for Process {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("Process")
+           .field("cmd", &self.cmd)
+           .field("args", &self.args)
+           .finish()
+    }
+}
+
+impl Default for Process {
+    fn default() -> Self {
+        Process {
+            stdin_fd: 0,
+            stdout_fd: 1,
+            stderr_fd: 2,
+            cmd: None,
+            args: None,
+        }
+    }
+}
+
+const REDIRECTION: [&str; 4] = [">", "<", ">>", "|"]; 
 
 /*
  * parse
@@ -118,25 +155,44 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
  *                      also, sets out/in/err redirection per global variables (maybe, don't know
  *                      yet.)
  */
-fn parse(tokens: Vec<&str>) -> Vec<Vec<&str>> {
-    let mut procs: Vec<Vec<&str>> = Vec::new();
-    let mut process: Vec<&str> = Vec::new();
+fn parse(tokens: Vec<&str>) -> Vec<Process> {
+    let mut procs: Vec<Process> = Vec::new();
+    let mut process: Process = Default::default();
 
-    if (tokens.is_empty()) {
+    if tokens.is_empty() {
         return procs; 
     }
-    
-    for token in tokens {
-        /* TODO: Manage redirection.
-        if token == "<" {
-                    
-        } else if token == ">" {
+
+    let mut cmd_ptr = 1; // point to the token right after the command.
+    let mut arg_ptr = 1; // point to the token before the next command (or next carriage character)
+
+    let mut args: Vec<String> = Vec::new();
+
+    for (i, token) in tokens.iter().enumerate() {
+        if cmd_ptr == arg_ptr {
+            process.cmd = Some(token.to_string()); 
+        } else if !(REDIRECTION.contains(&token)) {
+            args.push(token.to_string());
+        }
+
+        if REDIRECTION.contains(&token) {
+            // TODO: Set process stdout, stdin, stderr respectively.
+
+            process.args = Some(args); 
+            procs.push(process);
+
+            args = Vec::new();
+            process = Default::default();
+            
+            cmd_ptr = arg_ptr + 1;
+            arg_ptr = cmd_ptr;
+            continue;
+        }
         
-        } */
-
-        process.push(token);
+        arg_ptr += 1;
     }
-
+    
+    process.args = Some(args);
     procs.push(process);
 
     return procs;
