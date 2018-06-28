@@ -25,6 +25,8 @@ Hopefully, this will be more intense than a homework project.
 Simply `cargo run` for now.
 
 ## Dependencies:
-* Rust >= 1.23.0
-* Cargo >= 0.24.0 
-* Nix >= 0.11.0
+* rust >= 1.23.0
+* cargo >= 0.24.0 
+* nix >= 0.11.0
+* libc >= 0.2
+* rustyline >= 1.0.0
