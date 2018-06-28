@@ -22,7 +22,11 @@ Hopefully, this will be more intense than a homework project.
     * Mass file/directory renames based on regex.
 
 ## Installation:
-Simply `cargo run` for now.
+First, clone the repository:
+    
+    git clone https://github.com/benschau/rsh
+
+Afterward, simply execute `cargo run` to get the shell up and running.
 
 ## Dependencies:
 * rust >= 1.23.0
