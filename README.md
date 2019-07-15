@@ -7,6 +7,7 @@ A project I'm using to solidify my knowledge of Rust.
 Hopefully, this will be more intense than a homework project.
 
 ## Features:
+### TODO: basically all this
 * Colored, customizable output.
 * tab-completion
 * Versatile prompts, improved on the ZSH style.
@@ -31,6 +32,5 @@ Afterward, simply execute `cargo run` to get the shell up and running.
 ## Dependencies:
 * rust >= 1.23.0
 * cargo >= 0.24.0 
-* nix >= 0.11.0
 * libc >= 0.2
 * rustyline >= 1.0.0
