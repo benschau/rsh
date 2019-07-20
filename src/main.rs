@@ -1,5 +1,5 @@
-extern crate rsh;
 extern crate libc;
+extern crate rsh;
 
 use std::env;
 use std::process;
@@ -12,10 +12,10 @@ fn main() {
         args.push(String::from("startup"));
         args.push(String::from("~/rshrc.conf"));
     }
-    
+
     let config = Config::new(&args).unwrap_or_else(|err| {
         println!("could not parse arguments: {}", err);
-        process::exit(1); 
+        process::exit(1);
     });
 
     match rsh::run(config) {
@@ -23,6 +23,6 @@ fn main() {
         Err(e) => {
             eprintln!("shell encountered a problem: {}", e);
             process::exit(1);
-        },
+        }
     }
 }

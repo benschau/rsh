@@ -1,72 +1,80 @@
-
-extern crate rustyline;
 extern crate libc;
 extern crate nix;
+extern crate rustyline;
+extern crate termion;
 
 use std::error::Error;
+use std::fmt;
 use std::fs::File;
 use std::io;
-use std::io::Write; 
-use std::vec::Vec;
-use std::process::{Command, Stdio};
+use std::io::Write;
 use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::path::PathBuf;
-use std::fmt;
-use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use std::process::{Command, Stdio};
+use std::vec::Vec;
+use std::collections::HashMap;
+
 use libc::c_int;
 use nix::unistd::pipe;
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+use termion::{color, style};
 
 mod builtin;
 
 pub struct Config {
     pub filetype: String,
     pub filepath: String,
+    
+    //colors: HashMap<String, termion::color>,
 }
-
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, &'static str> {
         if args.len() < 3 {
-            return Err("too few arguments"); 
+            return Err("too few arguments");
         }
 
         let conf_type = args[1].clone();
         let conf_fpath = args[2].clone();
 
-        return Ok(Config { 
-                    filetype: conf_type, 
-                    filepath: conf_fpath,
-                  });
+        return Ok(Config {
+            filetype: conf_type,
+            filepath: conf_fpath,
+            //colors: HashMap::new(),
+        });
     }
 
+    /// read config files and populate fields
+    /// always uses the current self.filepath to 
+    /// update fields
     pub fn init_conf(&self) {
-    
+             
     }
 }
 
 pub fn run(config: Config) -> Result<(), Box<Error>> {
     let stdin = io::stdin();
-    
+
     let prompt: String = String::from(">> ");
     let mut pwd: PathBuf;
     let mut running: bool = true;
     let mut r1 = Editor::<()>::new();
 
     if let Err(_) = r1.load_history(".rsh_history") {
-        println!("No previous history!"); 
+        println!("{}No previous history!{}", color::Fg(color::Red), style::Reset);
     }
-    
-    // read config files
+
+    config.init_conf();
 
     // cmd loop
     while running {
         pwd = builtin::pwd()?;
-        
-        // print!("{} | {} ", pwd.display(), prompt);  
-        
+
+        // print!("{} | {} ", pwd.display(), prompt);
+
         // let mut input = String::new();
         // stdin.read_line(&mut input)?;
-        
+
         let input;
         let readline = r1.readline(&prompt);
         match readline {
@@ -75,42 +83,40 @@ pub fn run(config: Config) -> Result<(), Box<Error>> {
                     r1.add_history_entry(&line);
                 }
                 input = line;
-            }, 
+            }
             Err(err) => {
                 println!("Error: {:?}", err);
-                break
+                break;
             }
         }
         io::stdout().flush().unwrap();
-        
+
         let tokens: Vec<&str> = input.split_whitespace().collect();
         let procs: Vec<Process> = parse(tokens);
 
-        println!("{:?}", procs);
-        
+        println!("{}{:?}{}", color::Fg(color::Green), procs, style::Reset);
+
         for process in procs {
             let cmd = process.cmd.unwrap();
             let args = process.args.unwrap();
 
             if cmd == "exit" {
-                builtin::exit(1); 
+                builtin::exit(1);
             } else {
-                let childproc = Command::new(&cmd)
-                                        .args(args)
-                                        .output();
-                    
-                match childproc { 
+                let childproc = Command::new(&cmd).args(args).output();
+
+                match childproc {
                     Ok(child) => {
-                        println!("{}", String::from_utf8_lossy(&child.stdout));
-                        println!("{}", String::from_utf8_lossy(&child.stderr));
-                    },
+                        print!("{}", String::from_utf8_lossy(&child.stdout));
+                        print!("{}", String::from_utf8_lossy(&child.stderr));
+                    }
                     Err(e) => {
-                        println!("rsh: command not found: {}", cmd);
+                        print!("rsh: command not found: {}", cmd);
                     }
                 };
             }
-        } 
-    } 
+        }
+    }
 
     r1.save_history(".rsh_history").unwrap();
 
@@ -128,9 +134,9 @@ struct Process {
 impl fmt::Debug for Process {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Process")
-           .field("cmd", &self.cmd)
-           .field("args", &self.args)
-           .finish()
+            .field("cmd", &self.cmd)
+            .field("args", &self.args)
+            .finish()
     }
 }
 
@@ -146,7 +152,7 @@ impl Default for Process {
     }
 }
 
-const REDIRECTION: [&str; 4] = [">", "<", ">>", "|"]; 
+const REDIRECTION: [&str; 4] = [">", "<", ">>", "|"];
 
 /*
  * parse
@@ -160,7 +166,7 @@ fn parse(tokens: Vec<&str>) -> Vec<Process> {
     let mut process: Process = Default::default();
 
     if tokens.is_empty() {
-        return procs; 
+        return procs;
     }
 
     let mut cmd_ptr = 1; // point to the token right after the command.
@@ -170,7 +176,7 @@ fn parse(tokens: Vec<&str>) -> Vec<Process> {
 
     for (i, token) in tokens.iter().enumerate() {
         if cmd_ptr == arg_ptr {
-            process.cmd = Some(token.to_string()); 
+            process.cmd = Some(token.to_string());
         } else if !(REDIRECTION.contains(&token)) {
             args.push(token.to_string());
         }
@@ -178,20 +184,20 @@ fn parse(tokens: Vec<&str>) -> Vec<Process> {
         if REDIRECTION.contains(&token) {
             // TODO: Set process stdout, stdin, stderr respectively.
 
-            process.args = Some(args); 
+            process.args = Some(args);
             procs.push(process);
 
             args = Vec::new();
             process = Default::default();
-            
+
             cmd_ptr = arg_ptr + 1;
             arg_ptr = cmd_ptr;
             continue;
         }
-        
+
         arg_ptr += 1;
     }
-    
+
     process.args = Some(args);
     procs.push(process);
 

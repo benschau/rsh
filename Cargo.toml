@@ -7,3 +7,4 @@ authors = ["benschau <bchau3440@gmail.com>"]
 libc = "0.2"
 nix = "0.11.0"
 rustyline = "1.0.0"
+termion = "1.5.3"

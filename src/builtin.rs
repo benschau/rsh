@@ -1,10 +1,9 @@
+use std::env;
 /**
  * builtin.rs
  *  rsh builtin commands, based of bash builtins.
  */
-
 use std::error::Error;
-use std::env;
 use std::path::PathBuf;
 
 static HELP: &'static str = "
@@ -22,7 +21,7 @@ pub fn help() {
  * exit - logout of the session
  */
 pub fn exit(code: i32) {
-    ::std::process::exit(code); 
+    ::std::process::exit(code);
 }
 
 /**
@@ -50,14 +49,12 @@ pub fn unset() -> Result<(), Box<Error>> {
  * hash - create a hash
  */
 pub fn hash(string: &str) -> Result<(u32), Box<Error>> {
-
     Ok((0))
 }
 
 /**
- * pwd - present working directory 
+ * pwd - present working directory
  */
 pub fn pwd() -> Result<(PathBuf), Box<Error>> {
     Ok((env::current_dir().unwrap()))
 }
-
